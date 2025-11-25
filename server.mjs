@@ -13,40 +13,41 @@ app.get("/", (req, res) => {
 });
 
 app.post("/create-draft-order", async (req, res) => {
+  console.log("Incoming body:", JSON.stringify(req.body, null, 2));
+
   try {
-    const order = req.body;
+    const { order } = req.body;
 
-    const createResp = await fetch(
-      `https://${SHOPIFY_STORE_DOMAIN}/admin/api/${SHOPIFY_API_VERSION}/draft_orders.json`,
-      {
-        method: "POST",
-        headers: {
-          "X-Shopify-Access-Token": SHOPIFY_ACCESS_TOKEN,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ draft_order: order })
-      }
-    );
+    if (!order) {
+      return res.status(400).json({
+        success: false,
+        error: "missing_order",
+        message: "Body must contain an 'order' field"
+      });
+    }
 
-    const createData = await createResp.json();
-    const draftId = createData.draft_order.id;
+    // At this point, order should already be an object like:
+    // {
+    //   customer_name: "...",
+    //   phone_number: "...",
+    //   fulfillment_type: "pickup" or "delivery",
+    //   address: "...",
+    //   order_details: "..."
+    // }
 
-    await fetch(
-      `https://${SHOPIFY_STORE_DOMAIN}/admin/api/${SHOPIFY_API_VERSION}/draft_orders/${draftId}/send_invoice.json`,
-      {
-        method: "POST",
-        headers: {
-          "X-Shopify-Access-Token": SHOPIFY_ACCESS_TOKEN,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ draft_order_invoice: { to: order.customer.email } })
-      }
-    );
+    console.log("Parsed order:", order);
 
-    res.json({ success: true });
-
+    return res.json({
+      success: true,
+      received: order
+    });
   } catch (err) {
-    res.status(500).json({ success: false });
+    console.error("Error handling order:", err);
+    return res.status(500).json({
+      success: false,
+      error: "server_error",
+      message: err.message
+    });
   }
 });
 
