@@ -11,6 +11,13 @@ const SHOPIFY_API_VERSION = "2025-01";
 app.get("/", (req, res) => {
   res.send("Your Shopify server is alive.");
 });
+app.post('/create-draft-order', (req, res) => {
+  console.log("✅ HIT /create-draft-order");
+  console.log("HEADERS:", req.headers);
+  console.log("BODY:", req.body);
+
+  ...
+});
 
 app.post("/create-draft-order", async (req, res) => {
   console.log("Incoming body:", JSON.stringify(req.body, null, 2));
@@ -52,3 +59,4 @@ app.post("/create-draft-order", async (req, res) => {
 });
 
 app.listen(3000, () => console.log("Local server running"));
+
